@@ -1,6 +1,5 @@
-<div x-data="$store.create_story" x-init="mounted">
+<div x-data="$store.create_story" x-init="mounted" style="padding-left: 10px">
     <button class="create-story-btn" @click="isShow = !isShow">
-        <i class="fas fa-plus"></i>
         Créer une histoire
     </button>
 
@@ -16,11 +15,8 @@
             </button>
         </form>
     </div>
-
-    <!-- La liste des planètes -->
+    
     <div>
-
-
         <div class="stories-grid">
             <template x-for="(story, Index) in storiesList" :key="Index">
                 <div class="story-card" @click="open_details(story)">

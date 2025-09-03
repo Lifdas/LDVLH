@@ -39,10 +39,11 @@
         <h1 x-text="title"></h1>
     </div>
     <div>
-        <button x-show="!storyStarted" @click="editingStory">Editer l'histoire</button>
-        <button x-show="!storyStarted" @click="storyStart">Commencer l'histoire</button>
+        <button x-show="!storyStarted && !editing" @click="editingStory">Editer l'histoire</button>
+        <button x-show="!storyStarted && !editing" @click="storyStart">Commencer l'histoire</button>
         <button x-show="storyStarted" @click="storyStart">Recommencer</button>
-        <button x-show="storyStarted" @click="stopStory">Arrêter</button>
+        <button x-show="storyStarted" @click="stopStory">Arrêter l'histoire</button>
+        <button x-show="!storyStarted && editing" @click="stopEditing">Arrêter l'edition</button>
     </div>
     <div x-show="isShow">
         <div class="field">
@@ -50,10 +51,12 @@
             <input type="number" x-model="form.indice" :disabled="disabled" min="0" style="width: 100px;">
         </div>
         <div class="field">
+            <label>Évennement</label>
             <textarea x-model="form.event" style="resize: vertical;" placeholder="Entrez l'évennement ici"
                 :disabled="disabled" id="content"></textarea>
         </div>
         <div class="field">
+            <label>Suites possibles</label>
             <div id="indice-container" style="border: 1px solid #ccc; padding: 5px;
         width: 100%; min-height: 40px; display: flex;
         flex-wrap: wrap; align-items: center; cursor: text;">
@@ -74,10 +77,10 @@
                 <button @click="resetForm()">
                     Nouvel évennement
                 </button>
-                <button x-show="!editing" @click="createEvent()">
+                <button x-show="!editEvent" @click="createEvent()">
                     Créer
                 </button>
-                <button x-show="editing" @click="updateEvent()">
+                <button x-show="editEvent" @click="updateEvent()">
                     Modifier
                 </button>
                 <button @click="deleteEvent()">
@@ -117,7 +120,7 @@
             <template x-for="(event, index) in eventList" :key="index">
                 <tr>
                     <td class="border border-gray-400 px-2 py-1" x-text="event.indice"></td>
-                    <td class="border border-gray-400 px-2 py-1 clickable" @click="editEvent" x-text="event.event"></td>
+                    <td class="border border-gray-400 px-2 py-1 clickable" @click="selectEvent" x-text="event.event"></td>
                     <td class="border border-gray-400 px-2 py-1">
                         <template x-for="(indice, idx) in event.indices" :key="indice">
                             <span>
@@ -157,15 +160,15 @@
                 event: {},
                 eventList: [],
                 editing: false,
+                editEvent: false,
 
                 mounted() {
                     window.addEventListener('pywebviewready', async () => {
                         try {
                             this.event = await window.pywebview.api.get_event(this.title);
-                            console.log("L'événement chargé :", this.event.event);
 
                         } catch (error) {
-                            console.error("Erreur lors de la récupération:", error);
+                            Alpine.store('NotifToast').error('Erreur lors de la récupération des données').show();
                         }
                     });
 
@@ -175,12 +178,11 @@
                     await pywebview.api.get_event(this.title, indice)
                         .then(response => {
                             if (response) {
-                                console.log(response)
                                 this.event = response;
                             }
                         })
                         .catch(err => {
-                            console.error("Erreur lors de la récupération des événements", err);
+                            Alpine.store('NotifToast').error("Erreur lors de la récupération de l'évènement").show();
                         });
                 },
 
@@ -195,9 +197,15 @@
                     this.storyShow = false;
                     this.storyStarted = false;
                 },
+                stopEditing() {
+                    this.isShow = false;
+                    this.editing = false;
+                    this.resetForm();
+                },
 
                 editingStory() {
                     this.isShow = !this.isShow;
+                    this.editing = true;
                     this.storyShow = false;
                     this.get_story();
                 },
@@ -206,17 +214,17 @@
                     pywebview.api.get_story(this.title)
                         .then(response => {
                             if (response) {
-                                console.log(response)
                                 this.eventList = response;
                             }
                         })
                         .catch(err => {
-                            console.error("Erreur lors de la récupération de l'histoire", err);
+                            Alpine.store('NotifToast').error("Erreur lors de la récupération de l'histoire").show();
+
                         });
                 },
 
-                editEvent() {
-                    this.editing = true;
+                selectEvent() {
+                    this.editEvent = true;
                     if (this.editing && this.event.indice !== '') {
                         this.form.indice = this.event.indice;
                         this.form.event = this.event.event;
@@ -236,7 +244,6 @@
                         if (confirm(`Êtes-vous sûr de vouloir supprimer l'événement n°${this.form.indice} ?`)) {
                             pywebview.api.delete_event(this.title, this.form.indice)
                                 .then((response) => {
-                                    console.log(response)
                                     if (response == true) {
                                         this.resetForm();
                                         this.event = {};
@@ -244,18 +251,15 @@
                                     }
                                 })
                                 .catch(err => {
-                                    console.error("Erreur lors de la suppression de l'événement", err);
+                                    Alpine.store('NotifToast').error("Erreur lors de la suppression de l'évènement").show();
                                 });
                         }
                     }
                 },
 
                 async createEvent() {
-                    console.log(this.form)
-
                     await pywebview.api.create_event(this.title, this.form)
                         .then((response) => {
-                            console.log(response)
                             if (response) {
                                 this.resetForm();
                                 this.get_story();
@@ -263,23 +267,23 @@
                             }
                         })
                         .catch(err => {
-                            console.error("Erreur lors de la mise à jour de la planète", err);
+                            Alpine.store('NotifToast').error("Erreur lors de la création de l'évènement").show();
+
                         });
 
                 },
 
                 async updateEvent() {
-                    console.log(this.form)
                     await pywebview.api.update_event(this.title, this.form)
                         .then((response) => {
-                            console.log(response)
                             if (response == true) {
                                 this.resetForm();
                                 this.get_story();
                             }
                         })
                         .catch(err => {
-                            console.error("Erreur lors de la mise à jour de l'événement", err);
+                            Alpine.store('NotifToast').error("Erreur lors de la mise à jour de l'évènement").show();
+
                         });
                 },
 
@@ -290,7 +294,7 @@
                         indices: []
                     };
                     this.newIndice = '';
-                    this.editing = false;
+                    this.editEvent = false;
                 },
 
                 addIndice() {
