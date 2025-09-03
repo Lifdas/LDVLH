@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Détails de l'histoire</title>
+    <!-- Font Awesome local -->
+    <link rel="stylesheet" href="../css/all.min.css">
+    <!-- JQUERY -->
+    <meta charset="UTF-8">
+    <script src="../js/jquery3.2.0.min.js"></script>
+    <script src="../js/jquery3.2.0.treetable.min.js"></script>
+    <script src="../js/jquery.tablesorter.min.js"></script>
+    <script src="../js/jquery.tablesorter.pager.js"></script>
+    <script src="../js/jquery.tablesorter.widgets.js"></script>
+    <script src="../js/jquery.metadata.js"></script>
+    <script src="../js/jquery.contextMenu.min.js"></script>
+    <!-- Fomantic UI -->
+    <link rel="stylesheet" href="../css/semantic.min.css">
+
+    <!-- Styles persos -->
+    <link rel="stylesheet" href="../css/style.css">
+
+    <!-- Alpine.js 3.8.1 (copié de l'ERP) -->
+    <script defer src="../js/alpinejs3.8.1.js"></script>
+    <script defer src="../js/app.js"></script>
+
+    <!-- Semantic UI JS -->
+    <script defer src="../js/semantic.min.js"></script>
+    <script src="../js/moment-with-locales.min.js"></script>
+    <link href="../css/app_semantic.css" rel="stylesheet" media="screen">
+
+
+</head>
+
+<body x-data="story_page" x-init="mounted"></body>
+<div class="story-container">
+    <div class="story-header">
+        <h1 x-text="title"></h1>
+    </div>
+    <div>
+        <button x-show="!storyStarted" @click="editingStory">Editer l'histoire</button>
+        <button x-show="!storyStarted" @click="storyStart">Commencer l'histoire</button>
+        <button x-show="storyStarted" @click="storyStart">Recommencer</button>
+        <button x-show="storyStarted" @click="stopStory">Arrêter</button>
+    </div>
+    <div x-show="isShow">
+        <div class="field">
+            <label>Indice</label>
+            <input type="number" x-model="form.indice" :disabled="disabled" min="0" style="width: 100px;">
+        </div>
+        <div class="field">
+            <textarea x-model="form.event" style="resize: vertical;" placeholder="Entrez l'évennement ici"
+                :disabled="disabled" id="content"></textarea>
+        </div>
+        <div class="field">
+            <div id="indice-container" style="border: 1px solid #ccc; padding: 5px;
+        width: 100%; min-height: 40px; display: flex;
+        flex-wrap: wrap; align-items: center; cursor: text;">
+                <template x-for="(indice, index) in form.indices" :key="index">
+                    <div style="display: flex; align-items: center; background: #007BFF;
+                                                    color: white; border-radius: 4px; padding: 5px 8px; margin: 3px;">
+                        <span x-text="indice"></span>
+                        <span style="margin-left: 8px; cursor: pointer;" @click="removeIndice(indice)">
+                            ❌</span>
+                    </div>
+                </template>
+                <input type="text" id="indiceInput" placeholder="Ajouter un indice..."
+                    style="border: none; outline: none; flex: 1; padding: 5px;" x-model="newIndice"
+                    @keydown.enter.prevent="addIndice" @keydown.tab.prevent="addIndice" @blur="addIndice"
+                    :disabled="disabled">
+            </div>
+            <div class="action-buttons">
+                <button @click="resetForm()">
+                    Nouvel évennement
+                </button>
+                <button x-show="!editing" @click="createEvent()">
+                    Créer
+                </button>
+                <button x-show="editing" @click="updateEvent()">
+                    Modifier
+                </button>
+                <button @click="deleteEvent()">
+                    Supprimer l'évennement
+                </button>
+            </div>
+        </div>
+    </div>
+    <div x-show="storyShow">
+        <div>
+            <!-- Numéro de l’étape -->
+            <div x-text="event.indice"></div>
+
+            <!-- Texte narratif -->
+            <div x-text="event.event"></div>
+
+            <!-- Boutons de choix -->
+            <div class="space-y-2">
+                <template x-for="(choice, index) in event.indices" :key="index">
+                    <button @click="get_event(choice)">
+                        <span x-text="choice"></span>
+                    </button>
+                </template>
+            </div>
+        </div>
+    </div>
+
+    <table class="table-auto border-collapse border border-gray-400 w-full" x-show="isShow">
+        <thead class="bg-gray-200">
+            <tr>
+                <th class="border border-gray-400 px-2 py-1">Indice</th>
+                <th class="border border-gray-400 px-2 py-1">Événement</th>
+                <th class="border border-gray-400 px-2 py-1">Indices suivants</th>
+            </tr>
+        </thead>
+        <tbody style="overflow-y: auto;">
+            <template x-for="(event, index) in eventList" :key="index">
+                <tr>
+                    <td class="border border-gray-400 px-2 py-1" x-text="event.indice"></td>
+                    <td class="border border-gray-400 px-2 py-1 clickable" @click="editEvent" x-text="event.event"></td>
+                    <td class="border border-gray-400 px-2 py-1">
+                        <template x-for="(indice, idx) in event.indices" :key="indice">
+                            <span>
+                                <span
+                                    class="cursor-pointer text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-1 py-0.5 rounded font-medium"
+                                    @click="goToIndice(indice)" x-text="event.indices ? indice : 'Aucun'">
+                                </span>
+                                <span x-show="idx < event.indices.length - 1" class="text-gray-400 mx-2">•</span>
+                            </span>
+                        </template>
+                    </td>
+                </tr>
+            </template>
+        </tbody>
+    </table>
+
+
+
+    <script>
+        function getParam(name) {
+            const hash = window.location.hash.substring(1);
+            return new URLSearchParams(hash).get(name);
+        }
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('story_page', () => ({
+                title: getParam('story'),
+                isShow: false,
+                storyShow: false,
+                storyStarted: false,
+                form: {
+                    indice: '',
+                    event: '',
+                    indices: []
+                },
+                disabled: false,
+                newIndice: '',
+                event: {},
+                eventList: [],
+                editing: false,
+
+                mounted() {
+                    window.addEventListener('pywebviewready', async () => {
+                        try {
+                            this.event = await window.pywebview.api.get_event(this.title);
+                            console.log("L'événement chargé :", this.event.event);
+
+                        } catch (error) {
+                            console.error("Erreur lors de la récupération:", error);
+                        }
+                    });
+
+                },
+
+                async get_event(indice = false) {
+                    await pywebview.api.get_event(this.title, indice)
+                        .then(response => {
+                            if (response) {
+                                console.log(response)
+                                this.event = response;
+                            }
+                        })
+                        .catch(err => {
+                            console.error("Erreur lors de la récupération des événements", err);
+                        });
+                },
+
+                storyStart() {
+                    this.storyShow = true;
+                    this.get_event(0); // Démarrer à l'indice 0
+                    this.storyStarted = true;
+                },
+
+                stopStory() {
+                    this.get_event(0); // Démarrer à l'indice 0
+                    this.storyShow = false;
+                    this.storyStarted = false;
+                },
+
+                editingStory() {
+                    this.isShow = !this.isShow;
+                    this.storyShow = false;
+                    this.get_story();
+                },
+
+                get_story() {
+                    pywebview.api.get_story(this.title)
+                        .then(response => {
+                            if (response) {
+                                console.log(response)
+                                this.eventList = response;
+                            }
+                        })
+                        .catch(err => {
+                            console.error("Erreur lors de la récupération de l'histoire", err);
+                        });
+                },
+
+                editEvent() {
+                    this.editing = true;
+                    if (this.editing && this.event.indice !== '') {
+                        this.form.indice = this.event.indice;
+                        this.form.event = this.event.event;
+                        if (this.event.indices == null) {
+                            this.form.indices = [];
+                        }
+                        else {
+                            this.form.indices = [...this.event.indices];
+                        }
+                        this.isShow = true;
+                        this.disabled = false;
+                    }
+                },
+
+                deleteEvent() {
+                    if (this.form.indice !== '') {
+                        if (confirm(`Êtes-vous sûr de vouloir supprimer l'événement n°${this.form.indice} ?`)) {
+                            pywebview.api.delete_event(this.title, this.form.indice)
+                                .then((response) => {
+                                    console.log(response)
+                                    if (response == true) {
+                                        this.resetForm();
+                                        this.event = {};
+                                        this.get_story();
+                                    }
+                                })
+                                .catch(err => {
+                                    console.error("Erreur lors de la suppression de l'événement", err);
+                                });
+                        }
+                    }
+                },
+
+                async createEvent() {
+                    console.log(this.form)
+
+                    await pywebview.api.create_event(this.title, this.form)
+                        .then((response) => {
+                            console.log(response)
+                            if (response) {
+                                this.resetForm();
+                                this.get_story();
+
+                            }
+                        })
+                        .catch(err => {
+                            console.error("Erreur lors de la mise à jour de la planète", err);
+                        });
+
+                },
+
+                async updateEvent() {
+                    console.log(this.form)
+                    await pywebview.api.update_event(this.title, this.form)
+                        .then((response) => {
+                            console.log(response)
+                            if (response == true) {
+                                this.resetForm();
+                                this.get_story();
+                            }
+                        })
+                        .catch(err => {
+                            console.error("Erreur lors de la mise à jour de l'événement", err);
+                        });
+                },
+
+                resetForm() {
+                    this.form = {
+                        indice: '',
+                        event: '',
+                        indices: []
+                    };
+                    this.newIndice = '';
+                    this.editing = false;
+                },
+
+                addIndice() {
+                    let indiceText = this.newIndice.trim();
+
+                    if (indiceText && !this.form.indices.includes(indiceText)) {
+                        this.form.indices.push(indiceText);
+                    }
+
+                    this.newIndice = "";
+                },
+
+                removeIndice(indiceText) {
+                    this.form.indices = this.form.indices.filter(indice => indice !== indiceText); //supprime l'indice sélectionné
+                },
+
+                goToIndice(indice) {
+                    // Utiliser data-indice
+                    let row = document.querySelector(`tr[data-indice='${indice}']`);
+
+                    // Chercher par contenu
+                    if (!row) {
+                        const allRows = document.querySelectorAll('tbody tr');
+                        row = Array.from(allRows).find(r => {
+                            const firstCell = r.querySelector('td:first-child');
+                            return firstCell && firstCell.textContent.trim() === indice.toString();
+                        });
+                    }
+
+                    if (row) {
+                        // Effet visuel temporaire
+                        row.style.backgroundColor = '#fef3c7';
+                        row.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'center',
+                            inline: 'nearest'
+                        });
+                        setTimeout(() => row.style.backgroundColor = '', 2000);
+                    }
+                }
+            }))
+        })
+
+    </script>
+    </body>
+
+</html>

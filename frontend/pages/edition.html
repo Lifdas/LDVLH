@@ -1,0 +1,85 @@
+<div x-data="$store.create_story" x-init="mounted">
+    <button class="create-story-btn" @click="isShow = !isShow">
+        <i class="fas fa-plus"></i>
+        Créer une histoire
+    </button>
+
+    <div x-show="isShow" x-transition class="floating-form">
+        <form>
+            <div class="form-group">
+                <label class="form-label">Nom de l'histoire</label>
+                <input type="text" x-model="title" class="form-input" required>
+            </div>
+
+            <button class="submit-btn" type='button' @click="createTitle()">
+                <i class="fas fa-check"></i> Ajouter
+            </button>
+        </form>
+    </div>
+
+    <!-- La liste des planètes -->
+    <div>
+
+
+        <div class="stories-grid">
+            <template x-for="(story, Index) in storiesList" :key="Index">
+                <div class="story-card" @click="open_details(story)">
+                    <div class="story-name" x-text="story"></div>
+            </template>
+
+        </div>
+    </div>
+</div>
+
+
+<script>
+    Alpine.store('create_story', {
+        title: '',
+        isShow: false,
+        form: {
+            nom: ''
+        },
+
+        storiesList: [],
+
+        mounted() {
+            this.loadStories()
+        },
+        async loadStories() {
+            try {
+                await pywebview.api.get_stories()
+                    .then(response => {
+                        console.log(response)
+                        this.storiesList = response;
+                    });
+            } catch (e) {
+                console.error('Erreur lors du chargement des histoires:', e);
+            }
+        },
+
+        async createTitle(){
+            try {
+                await pywebview.api.create_title(this.title)
+                    .then(response => {
+                        if (response) {
+                            Alpine.store('NotifToast').success('Histoire ajoutée avec succès').show()
+                            this.resetForm();
+                            this.isShow = false;
+                        }
+                    });
+            } catch (e) {
+                console.error('Erreur lors de la sauvegarde de l\'adresse:', e);
+            } 
+        },
+
+        resetForm() {
+            this.form.nom = '';
+            this.loadStories();
+        },
+
+        open_details(story) {
+            console.log("l'histoire", story)
+            window.pywebview.api.open_story_window(story)
+        }
+    });
+</script>

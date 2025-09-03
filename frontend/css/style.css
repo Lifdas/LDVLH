@@ -1,0 +1,605 @@
+/* ====== THÈME DUNGEONS & DRAGONS ====== */
+
+/* Variables CSS pour la cohérence */
+:root {
+  /* Palette D&D inspirée du manuel des joueurs */
+  --parchment-light: #f5f1e8;
+  --parchment-main: #ebe5d6;
+  --parchment-dark: #d4c5a9;
+  --leather-brown: #8b4513;
+  --leather-dark: #654321;
+  --gold-accent: #d4af37;
+  --gold-dark: #b8860b;
+  --text-dark: #2c1810;
+  --text-medium: #4a3426;
+  --red-accent: #8b1538;
+  --green-accent: #228b22;
+  
+  /* Ombres et bordures */
+  --shadow-light: 0 2px 4px rgba(44, 24, 16, 0.1);
+  --shadow-medium: 0 4px 8px rgba(44, 24, 16, 0.15);
+  --shadow-heavy: 0 8px 16px rgba(44, 24, 16, 0.2);
+  --border-ornate: 2px solid var(--gold-accent);
+  
+  /* Typographie */
+  --font-title: 'Cinzel', 'Times New Roman', serif;
+  --font-body: 'Crimson Text', 'Georgia', serif;
+  --font-ui: 'Quattrocento', 'Times New Roman', serif;
+}
+
+/* Import des polices Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Quattrocento:wght@400;700&display=swap');
+
+/* ====== STYLES GÉNÉRAUX ====== */
+
+body {
+  background: linear-gradient(135deg, var(--parchment-light) 0%, var(--parchment-main) 100%);
+  background-image: 
+    radial-gradient(circle at 20% 50%, rgba(212, 175, 55, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(139, 69, 19, 0.05) 0%, transparent 50%),
+    url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 60 60"><defs><pattern id="grain" width="60" height="60" patternUnits="userSpaceOnUse"><circle cx="30" cy="30" r="0.5" fill="rgba(139,69,19,0.05)"/></pattern></defs><rect width="100%" height="100%" fill="url(%23grain)"/></svg>');
+  font-family: var(--font-body);
+  color: var(--text-dark);
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+.ui.container {
+  background: rgba(245, 241, 232, 0.9);
+  border-radius: 8px;
+  box-shadow: var(--shadow-heavy);
+  border: 1px solid var(--parchment-dark);
+  backdrop-filter: blur(5px);
+}
+
+/* ====== NAVIGATION ====== */
+
+.custom-navigation {
+  background: linear-gradient(135deg, var(--leather-brown) 0%, var(--leather-dark) 100%);
+  padding: 1rem;
+  border-radius: 8px 8px 0 0;
+  border-bottom: 3px solid var(--gold-accent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  position: relative;
+}
+
+.custom-navigation::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><rect width="20" height="20" fill="none"/><path d="M10 0L12 8L20 10L12 12L10 20L8 12L0 10L8 8Z" fill="rgba(212,175,55,0.1)"/></svg>');
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.nav-button {
+  background: linear-gradient(135deg, var(--gold-accent) 0%, var(--gold-dark) 100%);
+  color: var(--text-dark);
+  border: 2px solid var(--leather-dark);
+  padding: 0.75rem 1.5rem;
+  margin: 0 0.5rem;
+  border-radius: 25px;
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow-medium);
+  position: relative;
+  overflow: hidden;
+}
+
+.nav-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s ease;
+}
+
+.nav-button:hover::before {
+  left: 100%;
+}
+
+.nav-button:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-heavy);
+  background: linear-gradient(135deg, #f0d962 0%, var(--gold-accent) 100%);
+}
+
+.nav-button:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-light);
+}
+
+.nav-button i {
+  margin-right: 0.5rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* ====== CRÉATION D'HISTOIRE ====== */
+
+.create-story-btn {
+  background: linear-gradient(135deg, var(--green-accent) 0%, #1e6b1e 100%);
+  color: white;
+  border: 2px solid var(--leather-dark);
+  padding: 1rem 2rem;
+  border-radius: 30px;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow-medium);
+  margin: 2rem 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.create-story-btn::before {
+  content: '✨';
+  position: absolute;
+  top: 50%;
+  left: 10px;
+  transform: translateY(-50%);
+  font-size: 1.2rem;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.create-story-btn:hover::before {
+  opacity: 1;
+}
+
+.create-story-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-heavy);
+  background: linear-gradient(135deg, #32cd32 0%, var(--green-accent) 100%);
+  padding-left: 2.5rem;
+}
+
+.create-story-btn i {
+  margin-right: 0.75rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* ====== FORMULAIRE FLOTTANT ====== */
+
+.floating-form {
+  background: var(--parchment-light);
+  border: var(--border-ornate);
+  border-radius: 12px;
+  padding: 2rem;
+  margin: 1rem 0;
+  box-shadow: var(--shadow-heavy);
+  position: relative;
+}
+
+.floating-form::before {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  right: -5px;
+  bottom: -5px;
+  background: linear-gradient(45deg, var(--gold-accent), var(--leather-brown), var(--gold-accent));
+  border-radius: 15px;
+  z-index: -1;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-label {
+  display: block;
+  font-family: var(--font-title);
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+  text-shadow: 1px 1px 2px rgba(212, 175, 55, 0.3);
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--parchment-dark);
+  border-radius: 8px;
+  background: var(--parchment-light);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  color: var(--text-dark);
+  transition: all 0.3s ease;
+  box-shadow: inset var(--shadow-light);
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--gold-accent);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2), inset var(--shadow-light);
+  background: white;
+}
+
+.submit-btn {
+  background: linear-gradient(135deg, var(--gold-accent) 0%, var(--gold-dark) 100%);
+  color: var(--text-dark);
+  border: 2px solid var(--leather-dark);
+  padding: 0.75rem 2rem;
+  border-radius: 25px;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow-medium);
+  font-size: 1rem;
+}
+
+.submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-heavy);
+  background: linear-gradient(135deg, #f0d962 0%, var(--gold-accent) 100%);
+}
+
+/* ====== GRILLE DES HISTOIRES ====== */
+
+.stories-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  padding: 2rem 0;
+}
+
+.story-card {
+  background: linear-gradient(135deg, var(--parchment-light) 0%, var(--parchment-main) 100%);
+  border: 2px solid var(--parchment-dark);
+  border-radius: 12px;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow-medium);
+  position: relative;
+  overflow: hidden;
+}
+
+.story-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--gold-accent), var(--leather-brown), var(--gold-accent));
+}
+
+.story-card::after {
+  content: '📚';
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  font-size: 1.5rem;
+  opacity: 0.6;
+  transition: all 0.3s ease;
+}
+
+.story-card:hover {
+  transform: translateY(-5px) scale(1.02);
+  box-shadow: var(--shadow-heavy);
+  border-color: var(--gold-accent);
+  background: linear-gradient(135deg, white 0%, var(--parchment-light) 100%);
+}
+
+.story-card:hover::after {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.story-name {
+  font-family: var(--font-title);
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  text-align: center;
+  text-shadow: 1px 1px 2px rgba(212, 175, 55, 0.3);
+  margin-bottom: 0.5rem;
+}
+
+/* ====== PAGE DÉTAILS DE L'HISTOIRE ====== */
+
+.story-container {
+  max-width: 800px;
+  overflow-y: auto;
+  margin: 0 auto;
+  padding: 2rem;
+  background: var(--parchment-light);
+  border-radius: 12px;
+  box-shadow: var(--shadow-heavy);
+  border: var(--border-ornate);
+}
+
+.story-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, var(--leather-brown) 0%, var(--leather-dark) 100%);
+  border-radius: 8px;
+  position: relative;
+}
+
+.story-header h1 {
+  font-family: var(--font-title);
+  font-size: 2.5rem;
+  color: var(--gold-accent);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  margin: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.story-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><path d="M20 5L22 18L35 20L22 22L20 35L18 22L5 20L18 18Z" fill="rgba(212,175,55,0.1)"/></svg>');
+  opacity: 0.3;
+}
+
+/* ====== BOUTONS D'ACTION ====== */
+
+.story-container button {
+  background: linear-gradient(135deg, var(--leather-brown) 0%, var(--leather-dark) 100%);
+  color: var(--gold-accent);
+  border: 2px solid var(--gold-accent);
+  padding: 0.75rem 1.5rem;
+  border-radius: 25px;
+  font-family: var(--font-ui);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow-medium);
+  margin: 0.5rem;
+  font-size: 1rem;
+}
+
+.story-container button:hover {
+  background: linear-gradient(135deg, var(--gold-accent) 0%, var(--gold-dark) 100%);
+  color: var(--text-dark);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-heavy);
+}
+
+/* ====== CHAMPS DE FORMULAIRE ====== */
+
+.field {
+  margin-bottom: 1.5rem;
+}
+
+.field label {
+  display: block;
+  font-family: var(--font-title);
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.field input,
+.field textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid var(--parchment-dark);
+  border-radius: 8px;
+  background: var(--parchment-light);
+  font-family: var(--font-body);
+  color: var(--text-dark);
+  transition: all 0.3s ease;
+  box-shadow: inset var(--shadow-light);
+}
+
+.field input:focus,
+.field textarea:focus {
+  outline: none;
+  border-color: var(--gold-accent);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
+  background: white;
+}
+
+.field textarea {
+  min-height: 120px;
+  resize: vertical;
+  font-family: var(--font-body);
+  line-height: 1.6;
+}
+
+/* ====== CONTENEUR D'INDICES ====== */
+
+#indice-container {
+  border: 2px solid var(--parchment-dark);
+  border-radius: 8px;
+  background: var(--parchment-light);
+  transition: all 0.3s ease;
+  box-shadow: inset var(--shadow-light);
+}
+
+#indice-container:focus-within {
+  border-color: var(--gold-accent);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
+  background: white;
+}
+
+#indice-container > div {
+  background: linear-gradient(135deg, var(--leather-brown) 0%, var(--leather-dark) 100%);
+  color: var(--gold-accent);
+  border: 1px solid var(--gold-accent);
+  font-family: var(--font-ui);
+  font-weight: 600;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+#indice-container input {
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* ====== BOUTONS D'ACTION ====== */
+
+.action-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  justify-content: center;
+}
+
+.action-buttons button:first-child {
+  background: linear-gradient(135deg, var(--green-accent) 0%, #1e6b1e 100%);
+  color: white;
+  border-color: var(--green-accent);
+}
+
+.action-buttons button:first-child:hover {
+  background: linear-gradient(135deg, #32cd32 0%, var(--green-accent) 100%);
+}
+
+.action-buttons button:last-child {
+  background: linear-gradient(135deg, var(--red-accent) 0%, #6b1529 100%);
+  color: white;
+  border-color: var(--red-accent);
+}
+
+.action-buttons button:last-child:hover {
+  background: linear-gradient(135deg, #cd3250 0%, var(--red-accent) 100%);
+}
+
+/* ====== SECTION DE JEU ====== */
+
+.story-container > div[x-show="storyShow"] {
+  background: var(--parchment-main);
+  border: var(--border-ornate);
+  border-radius: 12px;
+  padding: 2rem;
+  margin: 2rem 0;
+  box-shadow: var(--shadow-medium);
+  position: relative;
+}
+
+.story-container > div[x-show="storyShow"]::before {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  right: -3px;
+  bottom: -3px;
+  background: linear-gradient(45deg, var(--gold-accent), var(--leather-brown));
+  border-radius: 15px;
+  z-index: -1;
+}
+
+/* Numéro d'étape */
+.story-container > div[x-show="storyShow"] > div > div:first-child {
+  font-family: var(--font-title);
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--leather-brown);
+  text-align: center;
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  background: var(--gold-accent);
+  border-radius: 25px;
+  width: fit-content;
+  margin: 0 auto 1rem auto;
+  box-shadow: var(--shadow-medium);
+}
+
+/* Texte narratif */
+.story-container > div[x-show="storyShow"] > div > div:nth-child(2) {
+  font-family: var(--font-body);
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: var(--text-dark);
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 8px;
+  border-left: 4px solid var(--gold-accent);
+  box-shadow: var(--shadow-light);
+}
+
+/* Boutons de choix */
+.story-container > div[x-show="storyShow"] .space-y-2 {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.story-container > div[x-show="storyShow"] .space-y-2 button {
+  background: linear-gradient(135deg, var(--parchment-light) 0%, var(--parchment-main) 100%);
+  color: var(--text-dark);
+  border: 2px solid var(--leather-brown);
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  text-align: left;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.story-container > div[x-show="storyShow"] .space-y-2 button::before {
+  content: '→';
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.2rem;
+  color: var(--gold-accent);
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+
+.story-container > div[x-show="storyShow"] .space-y-2 button:hover {
+  background: linear-gradient(135deg, var(--gold-accent) 0%, var(--gold-dark) 100%);
+  color: var(--text-dark);
+  border-color: var(--leather-dark);
+  transform: translateX(10px);
+  padding-right: 3rem;
+}
+
+.story-container > div[x-show="storyShow"] .space-y-2 button:hover::before {
+  opacity: 1;
+}
+
+/* ====== TOAST NOTIFICATIONS ====== */
+
+#toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: linear-gradient(135deg, var(--parchment-light) 0%, var(--parchment-main) 100%);
+  border: var(--border-ornate);
+  border-radius: 8px;
+  padding: 1rem 1.5rem;
+  box-shadow: var(--shadow-heavy);
+  font-family: var(--font-ui);
+  max-width: 300px;
+}
+
+#toast .b {
+  font-weight: 700;
+  color: var(--leather-brown);
+  margin-bottom: 0.5rem;
+  font-family: var(--font-title);
+}
+
+/* ====== TRANSITIONS ET ANIMATIONS ====== */

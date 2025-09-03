@@ -1,0 +1,20 @@
+<div x-data="$store.Home" x-init="mounted">
+  <h2>Bienvenue sur les rpg!</h2>
+
+<button 
+  class="nav-button secondary" 
+  @click="$store.App.checkUpdates()">
+  Vérifier les mises à jour
+</button>
+
+
+  <script>
+   
+      Alpine.store('Home', {
+        mounted() {
+        }
+
+      })
+
+  </script>
+</div>
