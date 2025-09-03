@@ -179,6 +179,7 @@ body {
   margin: 1rem 0;
   box-shadow: var(--shadow-heavy);
   position: relative;
+  width:min-content ;
 }
 
 .floating-form::before {
@@ -195,6 +196,7 @@ body {
 
 .form-group {
   margin-bottom: 1.5rem;
+  
 }
 
 .form-label {
@@ -208,7 +210,7 @@ body {
 }
 
 .form-input {
-  width: 100%;
+  width: 500px;
   padding: 0.75rem 1rem;
   border: 2px solid var(--parchment-dark);
   border-radius: 8px;
