@@ -44,7 +44,7 @@ class API():
             title=f"{story}",
             url=url,
             js_api=self,
-            width=560,
+            width=600,
             height=765,
             resizable=False
         )
@@ -80,6 +80,31 @@ class API():
             if creation:
                 return True
             return False
+    
+    def createHero(self, table, data):
+        db = TableStories(table=table, configClass=self.config)
+        rs = db.get_event(9999)
+        if rs and data['name'] != '' and data['skills'] != '':
+            liste_de_heros = rs['indices']
+            liste_de_heros.append(data)
+            rs['indices'] = liste_de_heros
+            update = db.update(9999, rs)
+
+            if update:
+                return True
+            return False
+        else:
+            if data['name'] != '' and data['skills'] != '':
+                hero_data = {
+                    'indice': 9999,
+                    'event': f"Veuillez sélectionner un héros.",
+                    'indices': [data]
+                }
+                creation = db.create(hero_data)
+
+                if creation:
+                    return True
+                return False
     
     def update_event(self, table, data):
         db = TableStories(table=table, configClass=self.config)

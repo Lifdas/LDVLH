@@ -1,3 +1,4 @@
+import json
 from loguru import logger
 from tools.mysql import Mysql
 
@@ -59,16 +60,16 @@ class TableStories(Mysql):
 
     
     def format_for_db(self, datas):
-        if 'indices' in datas:
-            if len(datas['indices']) == 0: #liste vide
-               datas['indices'] = None
-            else:
-                datas['indices'] = ",".join(datas['indices']) # Convertit la liste en chaîne
+        if 'indices' in datas :
+            if len(datas['indices']) == 0 :
+                datas['indices'] = None
+            else :                 
+                datas['indices'] = json.dumps(datas['indices'])
         return datas
     
     def format_from_db(self, datas):
-        if datas['indices'] is not None and len(datas['indices']) > 0:
-            datas['indices'] = [int(x.strip()) for x in datas['indices'].split(',')]
+        if 'indices' in datas and datas['indices'] is not None and str(datas['indices']).strip() != "":
+            datas['indices'] = json.loads(datas['indices'])
 
         return datas
     

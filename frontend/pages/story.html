@@ -45,34 +45,58 @@
         <button x-show="storyStarted" @click="stopStory">Arrêter l'histoire</button>
         <button x-show="!storyStarted && editing" @click="stopEditing">Arrêter l'edition</button>
     </div>
+
+    <!-- bloc évennement -->
     <div x-show="isShow">
+        <div class="ui info message">
+            <ul>
+                <li>Votre histoire doit commencer à l'indice 1</li>
+                <li>Ne pas donner de suite a l'indice 9999 il correspond aux héros et aux règles de l'aventure</li>
+                <li>Pour un retour à la ligne écrivez &lt;br&gt; où ils ne seront pas enregistrés</li>
+            </ul>
+        </div>
         <div class="field">
             <label>Indice</label>
             <input type="number" x-model="form.indice" :disabled="disabled" min="0" style="width: 100px;">
+
         </div>
         <div class="field">
             <label>Évennement</label>
             <textarea x-model="form.event" style="resize: vertical;" placeholder="Entrez l'évennement ici"
                 :disabled="disabled" id="content"></textarea>
         </div>
+
+        <!-- bloc création de suites -->
+        <div class="field" style="display: flex; align-items: center; gap: 10px;">
+            <div>
+                <label>Indice de suite</label>
+                <input x-model="newIndice" style="width: 100px;">
+            </div>
+            <div>
+                <label>Texte associé</label>
+                <input x-model="newText" style="width: 369px;">
+            </div>
+        </div>
+        <button @click="addIndice">Ajouter la suite à la liste</button>
         <div class="field">
-            <label>Suites possibles</label>
+            <label>Suites possible</label>
             <div id="indice-container" style="border: 1px solid #ccc; padding: 5px;
         width: 100%; min-height: 40px; display: flex;
         flex-wrap: wrap; align-items: center; cursor: text;">
-                <template x-for="(indice, index) in form.indices" :key="index">
-                    <div style="display: flex; align-items: center; background: #007BFF;
-                                                    color: white; border-radius: 4px; padding: 5px 8px; margin: 3px;">
-                        <span x-text="indice"></span>
-                        <span style="margin-left: 8px; cursor: pointer;" @click="removeIndice(indice)">
+                <template x-for="(objet, index) in form.indices" :key="index">
+                    <div
+                        style="display: flex; align-items: center; background: #007BFF; color: white; border-radius: 4px; padding: 5px 8px; margin: 3px;">
+                        <span x-text="objet.choix? objet.choix : objet.name"></span>
+                        <span style="margin-left: 8px; cursor: pointer;" @click="removeIndice(objet)">
                             ❌</span>
                     </div>
                 </template>
-                <input type="text" id="indiceInput" placeholder="Ajouter un indice..."
+                <!-- <input type="text" id="indiceInput" placeholder="Ajouter un indice..."
                     style="border: none; outline: none; flex: 1; padding: 5px;" x-model="newIndice"
                     @keydown.enter.prevent="addIndice" @keydown.tab.prevent="addIndice" @blur="addIndice"
-                    :disabled="disabled">
+                    :disabled="disabled"> -->
             </div>
+            <!-- bloc création héro -->
             <div class="action-buttons">
                 <button @click="resetForm()">
                     Nouvel évennement
@@ -87,21 +111,51 @@
                     Supprimer l'évennement
                 </button>
             </div>
+            <div class="ui grid" style="margin-top: 20px;">
+                <h2>Création de héros</h2>
+                <button x-show="!newHero" @click="newHero = true">Créer un héros</button>
+                <button x-show="newHero" @click="newHero = false">Fermer</button>
+            </div>
+                <div class="field" x-show="newHero" x-transition.opacity.duration.500ms>
+                    <label>Nom</label>
+                    <input x-model="hero.name" type="text" style="width: 300px;">
+                    <label>Compétences</label>
+                    <textarea x-model="hero.skills" type="text" style="width: 300px;"></textarea>
+                    <button x-show="newHero" @click="createHero">Ajouter le héros</button>
+                </div>
         </div>
     </div>
+
+    <!-- bloc histoire -->
+    <div x-show="storyStarted && storyShow" class="field">
+        <h2 x-text="heroSelected.name"></h2>
+        <label>Vos compétences</label>
+        <textarea id="content" x-model="heroSelected.skills"
+            x-init="$el.style.height = 'auto'; $el.style.height = $el.scrollHeight + 'px'"
+            @input="$el.style.height = 'auto'; $el.style.height = $el.scrollHeight + 'px'"
+            class="resize-none overflow-hidden w-full border rounded p-2"></textarea>
+    </div>
+
     <div x-show="storyShow">
         <div>
             <!-- Numéro de l’étape -->
             <div x-text="event.indice"></div>
 
             <!-- Texte narratif -->
-            <div x-text="event.event"></div>
+            <div x-html="event.event"></div>
 
             <!-- Boutons de choix -->
-            <div class="space-y-2">
-                <template x-for="(choice, index) in event.indices" :key="index">
-                    <button @click="get_event(choice)">
-                        <span x-text="choice"></span>
+            <div x-show="!selectHero" class="space-y-2">
+                <template x-for="(objet, index) in event.indices" :key="index">
+                    <button @click="get_event(objet.indice)">
+                        <span x-html="objet.choix"></span>
+                    </button>
+                </template>
+            </div>
+            <div x-show="selectHero" class="space-y-2">
+                <template x-for="(hero, index) in event.indices" :key="index">
+                    <button @click="get_event(1, hero)">
+                        <span x-html="hero.name+' <br> '+hero.skills"></span>
                     </button>
                 </template>
             </div>
@@ -120,15 +174,16 @@
             <template x-for="(event, index) in eventList" :key="index">
                 <tr>
                     <td class="border border-gray-400 px-2 py-1" x-text="event.indice"></td>
-                    <td class="border border-gray-400 px-2 py-1 clickable" @click="selectEvent" x-text="event.event"></td>
+                    <td class="border border-gray-400 px-2 py-1 clickable" @click="selectEvent" x-text="event.event">
+                    </td>
                     <td class="border border-gray-400 px-2 py-1">
-                        <template x-for="(indice, idx) in event.indices" :key="indice">
-                            <span>
-                                <span
-                                    class="cursor-pointer text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-1 py-0.5 rounded font-medium"
-                                    @click="goToIndice(indice)" x-text="event.indices ? indice : 'Aucun'">
-                                </span>
-                                <span x-show="idx < event.indices.length - 1" class="text-gray-400 mx-2">•</span>
+                        <template x-for="(objet, idx) in event.indices" :key="idx">
+                            <span style="display: flex; align-items: center; flex-wrap: wrap;">
+                                <a class="cursor-pointer text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-1 py-0.5 rounded font-medium clickable"
+                                    @click="goToIndice(objet)"
+                                    x-text="objet.indice ? objet.indice : (objet.name ? objet.name : 'Aucun')">
+                                </a>
+                                <a x-show="idx < event.indices.length - 1" class="text-gray-400 mx-2">•</a>
                             </span>
                         </template>
                     </td>
@@ -150,6 +205,16 @@
                 isShow: false,
                 storyShow: false,
                 storyStarted: false,
+                selectHero: false,
+                newHero: false,
+                hero: {
+                    name: '',
+                    skills: ''
+                },
+                heroSelected: {
+                    name: '',
+                    skills: ''
+                },
                 form: {
                     indice: '',
                     event: '',
@@ -157,6 +222,7 @@
                 },
                 disabled: false,
                 newIndice: '',
+                newText: '',
                 event: {},
                 eventList: [],
                 editing: false,
@@ -165,7 +231,7 @@
                 mounted() {
                     window.addEventListener('pywebviewready', async () => {
                         try {
-                            this.event = await window.pywebview.api.get_event(this.title);
+                            this.event = await window.pywebview.api.get_story(this.title);
 
                         } catch (error) {
                             Alpine.store('NotifToast').error('Erreur lors de la récupération des données').show();
@@ -174,7 +240,13 @@
 
                 },
 
-                async get_event(indice = false) {
+                async get_event(indice = false, hero = false) {
+                    if (this.selectHero) {
+                        this.heroSelected.name = hero.name
+                        this.heroSelected.skills = hero.skills
+                        this.selectHero = false
+
+                    }
                     await pywebview.api.get_event(this.title, indice)
                         .then(response => {
                             if (response) {
@@ -187,15 +259,19 @@
                 },
 
                 storyStart() {
+                    this.resetForm();
                     this.storyShow = true;
-                    this.get_event(0); // Démarrer à l'indice 0
+                    this.get_event(9999); // Démarrer à l'indice 9999 pour les persos
                     this.storyStarted = true;
+                    this.selectHero = true;
                 },
 
                 stopStory() {
-                    this.get_event(0); // Démarrer à l'indice 0
+                    this.get_event(9999); // Démarrer à l'indice 0
                     this.storyShow = false;
                     this.storyStarted = false;
+                    this.resetForm();
+
                 },
                 stopEditing() {
                     this.isShow = false;
@@ -273,6 +349,17 @@
 
                 },
 
+                async createHero() {
+                    await pywebview.api.createHero(this.title, this.hero)
+                        .then((response) => {
+                            if (response) {
+                                this.resetForm();
+                                this.get_story();
+
+                            }
+                        })
+                },
+
                 async updateEvent() {
                     await pywebview.api.update_event(this.title, this.form)
                         .then((response) => {
@@ -293,46 +380,70 @@
                         event: '',
                         indices: []
                     };
+                    this.hero = {
+                        name: '',
+                        skills: ''
+                    };
                     this.newIndice = '';
+                    this.newText = '';
                     this.editEvent = false;
+                    this.heroSelected.name = '';
+                    this.heroSelected.skills = '';
                 },
 
                 addIndice() {
-                    let indiceText = this.newIndice.trim();
+                    let indiceNumber = this.newIndice.trim();
+                    let indiceText = this.newText;
 
-                    if (indiceText && !this.form.indices.includes(indiceText)) {
-                        this.form.indices.push(indiceText);
+                    // Vérifier si l'indice existe déjà
+                    let existe = this.form.indices.some(obj => obj.indice === indiceNumber);
+
+                    if (existe) {
+                        alert("L'indice existe déjà dans la liste.");
+                        this.newIndice = "";
+                        return;
                     }
 
+                    // Ajouter l'indice car il n'existe pas
+                    this.form.indices.push({ indice: indiceNumber, choix: indiceText });
                     this.newIndice = "";
+                    this.newText = "";
                 },
 
-                removeIndice(indiceText) {
-                    this.form.indices = this.form.indices.filter(indice => indice !== indiceText); //supprime l'indice sélectionné
+                removeIndice(indiceNumber) {
+                    this.form.indices = this.form.indices.filter(indice => indice !== indiceNumber); //supprime l'indice sélectionné
                 },
 
-                goToIndice(indice) {
-                    // Utiliser data-indice
-                    let row = document.querySelector(`tr[data-indice='${indice}']`);
+                goToIndice(objet) {
+                    console.log(objet);
+                    if (objet.indice) {
+                        // Utiliser data-indice
+                        let row = document.querySelector(`tr[data-indice='${objet.indice}']`);
 
-                    // Chercher par contenu
-                    if (!row) {
-                        const allRows = document.querySelectorAll('tbody tr');
-                        row = Array.from(allRows).find(r => {
-                            const firstCell = r.querySelector('td:first-child');
-                            return firstCell && firstCell.textContent.trim() === indice.toString();
-                        });
+                        // Chercher par contenu
+                        if (!row) {
+                            const allRows = document.querySelectorAll('tbody tr');
+                            row = Array.from(allRows).find(r => {
+                                const firstCell = r.querySelector('td:first-child');
+                                return firstCell && firstCell.textContent.trim() === objet.indice.toString();
+                            });
+                        }
+
+                        if (row) {
+                            // Effet visuel temporaire
+                            row.style.backgroundColor = '#fef3c7';
+                            row.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'center',
+                                inline: 'nearest'
+                            });
+                            setTimeout(() => row.style.backgroundColor = '', 2000);
+                        }
                     }
-
-                    if (row) {
-                        // Effet visuel temporaire
-                        row.style.backgroundColor = '#fef3c7';
-                        row.scrollIntoView({
-                            behavior: 'smooth',
-                            block: 'center',
-                            inline: 'nearest'
-                        });
-                        setTimeout(() => row.style.backgroundColor = '', 2000);
+                    else if (objet.name) {
+                        this.newHero = true;
+                        this.hero.name = objet.name;
+                        this.hero.skills = objet.skills;
                     }
                 }
             }))
